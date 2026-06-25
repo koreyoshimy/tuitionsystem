@@ -1,0 +1,139 @@
+<?php
+session_start();
+include("db.php");
+
+// Check if report data exists
+if (!isset($_SESSION['report_data'])) {
+    header("Location: generate_report.php");
+    exit();
+}
+
+$report = $_SESSION['report_data'];
+unset($_SESSION['report_data']);
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><?= $report['title'] ?></title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .report-header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        .report-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .report-period {
+            font-size: 16px;
+            color: #555;
+        }
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .report-table th {
+            background-color: #333;
+            color: white;
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        .report-table td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        .report-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .report-footer {
+            margin-top: 20px;
+            text-align: right;
+            font-style: italic;
+            color: #555;
+        }
+        @media print {
+            .no-print {
+                display: none;
+            }
+            body {
+                padding: 0;
+                font-size: 12px;
+            }
+            .report-table {
+                page-break-inside: auto;
+            }
+            .report-table tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="report-header">
+        <div class="report-title"><?= $report['title'] ?></div>
+        <div class="report-period">
+            <?php if ($report['params']['month'] != 'all'): ?>
+                Month: <?= $report['params']['month'] ?>
+            <?php endif; ?>
+            <?php if ($report['params']['year'] != 'all'): ?>
+                Year: <?= $report['params']['year'] ?>
+            <?php endif; ?>
+        </div>
+    </div>
+    
+    <table class="report-table">
+        <thead>
+            <tr>
+                <?php if (!empty($report['data'])): ?>
+                    <?php foreach (array_keys($report['data'][0]) as $header): ?>
+                    <th><?= htmlspecialchars($header) ?></th>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($report['data'] as $row): ?>
+            <tr>
+                <?php foreach ($row as $value): ?>
+                <td><?= htmlspecialchars($value) ?></td>
+                <?php endforeach; ?>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+    
+    <div class="report-footer">
+        Generated on <?= date('Y-m-d H:i:s') ?> by <?= $_SESSION['username'] ?>
+    </div>
+    
+    <div class="no-print" style="margin-top: 20px; text-align: center;">
+        <button onclick="window.print()" class="btn btn-primary">
+            <i class="fas fa-print"></i> Print Report
+        </button>
+        <button onclick="window.close()" class="btn btn-secondary">
+            <i class="fas fa-times"></i> Close
+        </button>
+    </div>
+
+    <script>
+        // Auto-print when page loads
+        window.onload = function() {
+            setTimeout(function() {
+                window.print();
+            }, 500);
+        };
+    </script>
+</body>
+</html>

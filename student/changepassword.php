@@ -1,0 +1,242 @@
+<?php
+session_start();
+include 'db.php'; // Include your database connection file
+
+// Check if the user is logged in
+if (!isset($_SESSION['username'])) {
+    header('Location: login.php');
+    exit();
+}
+
+// Fetch the logged-in user's username from the session
+$username = $_SESSION['username'];
+
+// Fetch current user data from the database
+$query = "SELECT * FROM users WHERE username = ?";
+$stmt = $conn->prepare($query);
+
+if (!$stmt) {
+    echo "Failed to prepare the statement.";
+    exit();
+}
+
+// Fetch user details from the database using the username
+$query = "SELECT * FROM users WHERE username = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("s", $username); // Bind username as a string
+$stmt->execute();
+
+$result = $stmt->get_result();
+
+if ($result->num_rows === 0) {
+    echo "No user found with the given username.";
+    exit();
+}
+
+$user = $result->fetch_assoc();
+
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Change Password</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="//cdn.datatables.net/2.2.1/css/dataTables.dataTables.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        /* General Styling */
+        *{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins" , sans-serif;
+}
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+
+        /* Sidebar Styling */
+   
+.sidebar {
+    width: 250px;
+    background-color:  #2b2640; /* Dark blue background */
+    color: white;
+    padding: 20px;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    height: 100%;
+    position: fixed;
+}
+
+.sidebar h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar ul li {
+    margin: 15px 0;
+}
+
+.sidebar ul li a {
+    text-decoration: none;
+    color: white;
+    font-size: 16px;
+    display: block;
+    padding: 12px 18px;
+    border-radius: 6px;
+    transition: background-color 0.3s, padding-left 0.3s;
+}
+
+.sidebar ul li a:hover,
+.sidebar ul li a.active {
+    background-color: #002244; /* Slightly lighter dark blue for hover effect */
+    padding-left: 25px; /* Slightly increase padding for hover effect */
+}
+
+/* Expandable Submenu Styling */
+.sidebar ul .submenu {
+    display: none;
+    padding-left: 20px;
+}
+
+.sidebar ul .submenu li {
+    margin: 5px 0;
+}
+
+.sidebar ul .submenu li a {
+    font-size: 14px;
+}
+
+
+        /* Main Content Styling */
+        .main-content {
+    flex: 1;
+    margin-left: 250px; /* Ensure the main content is not hidden behind the sidebar */
+    display: flex;
+    flex-direction: column;
+    
+    justify-content: flex-start;
+    min-height: 100vh;
+    background-color: #f0f4f8;
+    padding: 40px;
+    box-sizing: border-box;
+}
+
+        /* Form Container Styling */
+        .form-container {
+            background: white;
+            padding: 50px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 400px; /* Control the width of the form */
+            max-width: 100%; /* Ensure responsiveness */
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+form label {
+    font-size: 14px;
+    margin-bottom: 5px;
+    display: block;
+    text-align: left; /* Align labels to the left */
+}
+
+form input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+form button {
+    width: 100%;
+    padding: 10px;
+    background-color: #4a9cf0;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+form button:hover {
+    background-color: #3a8ad0;
+}
+
+
+        .toggle {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Include Sidebar -->
+    <div class="sidebar">
+    <h2>Welcome, <?php echo htmlspecialchars($_SESSION['name']); ?>!</h2>
+    <ul>
+        <li class="toggle">
+            <a href="javascript:void(0);">My Profile <i class="fa fa-caret-down"></i></a>
+            <ul class="submenu">
+                <li><a href="dashboard.php" class="<?php echo ($activePage === 'dashboard') ? 'active' : ''; ?>">Dashboard</a></li>
+                <li><a href="changepassword.php" class="<?php echo ($activePage === 'changepassword') ? 'active' : ''; ?>">Change Password</a></li>
+            </ul>      
+        <li><a href="book.php" class="<?php echo ($activePage === 'book') ? 'active' : ''; ?>">Subject</a></li>
+      
+        <li><a href="performance.php" class="<?php echo ($activePage === 'performance') ? 'active' : ''; ?>">Performance</a></li>
+        <li><a href="attendance.php" class="<?php echo ($activePage === 'attendance') ? 'active' : ''; ?>">Attendance</a></li>
+        <li><a href="payment.php" class="<?php echo ($activePage === 'payment') ? 'active' : ''; ?>">Payment</a></li>
+        <li><a href="logout.php" class="<?php echo ($activePage === 'logout') ? 'active' : ''; ?>">Log Out</a></li>
+    </ul>
+</div>
+
+    <div class="main-content">
+    <div class="form-container">
+        
+            <h1>Change Password</h1>
+            <form action="process_password.php" method="POST">
+                <!-- Old Password -->
+                <label for="password">Old Password</label>
+                <input type="password" id="password" name="password" required>
+
+                <!-- New Password -->
+                <label for="password1">New Password</label>
+                <input type="password" id="password1" name="password1" required>
+
+                <!-- Confirm New Password -->
+                <label for="password2">Confirm New Password</label>
+                <input type="password" id="password2" name="password2" required>
+
+                <button type="submit">Change</button>
+            </form>
+        </div>
+    </div>
+    <script>
+    // Add click event to toggle the submenu
+    document.querySelectorAll('.toggle').forEach(toggle => {
+        toggle.addEventListener('click', function () {
+            const submenu = this.querySelector('.submenu');
+            if (submenu) {
+                submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
+            }
+        });
+    });
+</script>
+</body>
+</html>
