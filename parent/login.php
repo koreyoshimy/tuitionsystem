@@ -3,6 +3,7 @@ session_start();
 include('db.php'); // Database connection file
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+<<<<<<< HEAD
     $username = trim($_POST['username']);
     $password = $_POST['password'];
 
@@ -18,6 +19,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION['username'] = $userData['username'];
         $_SESSION['name'] = $userData['name'];
         $_SESSION['role'] = $userData['role'];
+=======
+    $username = $_POST['username'];
+    $password = $_POST['password'];
+
+    // Sanitize inputs to prevent SQL injection
+    $username = mysqli_real_escape_string($conn, $username);
+    $password = mysqli_real_escape_string($conn, $password);
+
+    // Query to verify username, password, and fetch role
+    $query = "SELECT * FROM users WHERE username='$username' AND password='$password'";
+    $result = mysqli_query($conn, $query);
+
+    if (mysqli_num_rows($result) == 1) {
+        // Authentication successful
+        $userData = mysqli_fetch_assoc($result);
+        $_SESSION['username'] = $userData['username'];
+        $_SESSION['name'] = $userData['name'];
+        $_SESSION['role'] = $userData['role']; // Fetching user role
+>>>>>>> 228a4315a4c55a5067cfe2fd21f8317fe8124e6d
 
         // Redirect based on role
         switch ($userData['role']) {

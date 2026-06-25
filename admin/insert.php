@@ -37,6 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     }
 
+<<<<<<< HEAD
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
     // Check if the username already exists
@@ -46,22 +47,43 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $checkStmt->store_result();
 
     if ($checkStmt->num_rows > 0) {
+=======
+    // Hash the password before storing it in the database
+    //$hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+
+    // Check if the username already exists
+    $checkQuery = "SELECT * FROM users WHERE username = '$username'";
+    $checkResult = mysqli_query($conn, $checkQuery);
+
+    if (mysqli_num_rows($checkResult) > 0) {
+>>>>>>> 228a4315a4c55a5067cfe2fd21f8317fe8124e6d
         // Username already exists
         echo "<script>alert('Username already exists! Please choose a different one.'); window.location.href='register.php';</script>";
         exit();
     }
+<<<<<<< HEAD
     $checkStmt->close();
 
     // Insert user into the database
     $stmt = $conn->prepare("INSERT INTO users (username, name, password, email, gender) VALUES (?, ?, ?, ?, ?)");
     $stmt->bind_param("sssss", $username, $name, $hashedPassword, $email, $gender);
     if ($stmt->execute()) {
+=======
+
+    // Insert user into the database
+    $query = "INSERT INTO users (username, name, password, email, gender) VALUES ('$username', '$name', '$password', '$email', '$gender')";
+    if (mysqli_query($conn, $query)) {
+>>>>>>> 228a4315a4c55a5067cfe2fd21f8317fe8124e6d
         // Registration successful
         echo "<script>alert('Registration successful! Please log in.'); window.location.href='login.php';</script>";
         exit();
     } else {
         // Error inserting data
+<<<<<<< HEAD
         echo "Error: " . $conn->error;
+=======
+        echo "Error: " . mysqli_error($conn);
+>>>>>>> 228a4315a4c55a5067cfe2fd21f8317fe8124e6d
     }
 } else {
     // Redirect if the page is accessed without submitting the form
