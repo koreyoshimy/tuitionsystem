@@ -12,6 +12,10 @@ if (!$conn) {
  
 // Function to get count from a table
 function getCount($tableName, $conn) {
+    $allowed = ['users', 'children', 'subjects', 'payments', 'student_subjects'];
+    if (!in_array($tableName, $allowed, true)) {
+        return 0;
+    }
     $sql = "SELECT COUNT(*) as total FROM $tableName";
     $result = $conn->query($sql);
     if ($result && $result->num_rows > 0) {

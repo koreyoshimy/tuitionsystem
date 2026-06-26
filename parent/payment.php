@@ -11,8 +11,7 @@ if (!isset($_SESSION['username']) || !isset($_SESSION['role']) || $_SESSION['rol
 }
 
 // Then include your db connection
-require_once("db.php"); // Use require_once to ensure it's loaded
-include("db.php");
+require_once("db.php");
 
 // Check authentication
 if (!isset($_SESSION['username'])) {
@@ -264,18 +263,23 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 // ==============================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate_report'])) {
     $report_type = $_POST['report_type'];
-    $month = $_POST['month'];
-    $year = $_POST['year'];
     $format = $_POST['format'];
-    
+
+    // Whitelist month and year to prevent SQL injection
+    $valid_months = ['all','January','February','March','April','May','June',
+                     'July','August','September','October','November','December'];
+    $month = in_array($_POST['month'], $valid_months, true) ? $_POST['month'] : 'all';
+    $year  = isset($_POST['year']) && ctype_digit((string)$_POST['year'])
+             ? (int)$_POST['year'] : 'all';
+
     // Generate the report based on parameters
     $where = "WHERE 1=1";
-    
-    if ($month != 'all') {
+
+    if ($month !== 'all') {
         $where .= " AND month = '$month'";
     }
-    
-    if ($year != 'all') {
+
+    if ($year !== 'all') {
         $where .= " AND year = $year";
     }
     
@@ -312,18 +316,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate_report'])) {
             break;
             
         case 'unpaid':
-            $query = "SELECT 
+            $sub_year_filter = ($year !== 'all') ? "AND p.year = $year" : "";
+            $query = "SELECT
                       s.username, s.name, s.class,
                       GROUP_CONCAT(sub.subject_name SEPARATOR ', ') as unpaid_subjects
                       FROM children s
                       JOIN student_subjects ss ON s.username = ss.student_username
                       JOIN subjects sub ON ss.subject_id = sub.subject_id
                       LEFT JOIN (
-                          SELECT student_username, subject_id 
+                          SELECT student_username, subject_id
                           FROM payment_items pi
                           JOIN payments p ON pi.payment_id = p.payment_id
                           WHERE p.payment_status = 'completed'
-                          AND p.month = '$month' AND p.year = $year
+                          AND p.month = '$month' $sub_year_filter
                       ) paid ON s.username = paid.student_username AND ss.subject_id = paid.subject_id
                       WHERE paid.student_username IS NULL
                       GROUP BY s.username";
@@ -570,18 +575,23 @@ $years = $conn->query("SELECT DISTINCT year FROM payments ORDER BY year DESC");
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate_report'])) {
     $report_type = $_POST['report_type'];
-    $month = $_POST['month'];
-    $year = $_POST['year'];
     $format = $_POST['format'];
-    
+
+    // Whitelist month and year to prevent SQL injection
+    $valid_months = ['all','January','February','March','April','May','June',
+                     'July','August','September','October','November','December'];
+    $month = in_array($_POST['month'], $valid_months, true) ? $_POST['month'] : 'all';
+    $year  = isset($_POST['year']) && ctype_digit((string)$_POST['year'])
+             ? (int)$_POST['year'] : 'all';
+
     // Generate the report based on parameters
     $where = "WHERE 1=1";
-    
-    if ($month != 'all') {
+
+    if ($month !== 'all') {
         $where .= " AND p.month = '$month'";
     }
-    
-    if ($year != 'all') {
+
+    if ($year !== 'all') {
         $where .= " AND p.year = $year";
     }
     
@@ -627,7 +637,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate_report'])) {
             break;
             
         case 'unpaid':
-            $query = "SELECT 
+            $sub_year_filter = ($year !== 'all') ? "AND p.year = $year" : "";
+            $query = "SELECT
                       c.username, c.name, c.class,
                       GROUP_CONCAT(s.subject_name SEPARATOR ', ') as unpaid_subjects,
                       SUM(s.fee) as total_unpaid
@@ -635,11 +646,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generate_report'])) {
                       JOIN student_subjects ss ON c.username = ss.student_username
                       JOIN subjects s ON ss.subject_id = s.subject_id
                       LEFT JOIN (
-                          SELECT child_id, subject_id 
+                          SELECT child_id, subject_id
                           FROM payment_items pi
                           JOIN payments p ON pi.payment_id = p.payment_id
                           WHERE p.payment_status = 'completed'
-                          AND p.month = '$month' AND p.year = $year
+                          AND p.month = '$month' $sub_year_filter
                       ) paid ON c.username = paid.child_id AND ss.subject_id = paid.subject_id
                       WHERE paid.child_id IS NULL
                       GROUP BY c.username";

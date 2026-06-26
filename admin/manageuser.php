@@ -8,9 +8,6 @@ if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
     exit();
 }
 $username = $_SESSION['username'];
-$stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
-$stmt = $conn->prepare($query);
-// Prepare and execute the statement using mysqli
 $query = "SELECT email, username, name, role FROM users ORDER BY id DESC";
 $stmt = $conn->prepare($query);
 $stmt->execute();
@@ -365,8 +362,8 @@ $stmt->close();
     <h1>ACE Tuition Management System</h1>
     <div class="d-flex align-items-center gap-3 text-white">
         <div class="text-end">
-            <div><?php echo htmlspecialchars($parent['username']); ?></div>
-            <div style="font-size: 12px;"><?php echo htmlspecialchars($parent['role']); ?></div>
+            <div><?php echo htmlspecialchars($_SESSION['username']); ?></div>
+            <div style="font-size: 12px;"><?php echo htmlspecialchars($_SESSION['role']); ?></div>
         </div>
         <a href="logout.php" class="text-white" title="Logout">
             <i class="fas fa-sign-out-alt fa-lg"></i>

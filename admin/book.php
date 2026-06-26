@@ -161,9 +161,12 @@ $activePage = basename($_SERVER['PHP_SELF'], ".php");
         <?php
 
     // Fetch course details from the database
-    $result = mysqli_query($conn, "SELECT * FROM subjects WHERE username = '$username'");
+    $stmt = $conn->prepare("SELECT * FROM subjects WHERE username = ?");
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-    if (mysqli_num_rows($result) > 0) {
+    if ($result->num_rows > 0) {
         echo "<h3>All Booked Courses:</h3>";
         echo "<table border='1' cellpadding='10' cellspacing='0'>";
         echo "<tr>

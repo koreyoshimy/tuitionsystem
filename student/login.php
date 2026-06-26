@@ -1,13 +1,14 @@
 <?php
 session_start();
 include('db.php'); // Database connection file
+require_once('../csrf.php');
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-<<<<<<< HEAD
+    csrf_verify();
+
     $username = trim($_POST['username']);
     $password = $_POST['password'];
 
-    // Fetch user by username then verify password hash
     $stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
     $stmt->bind_param("s", $username);
     $stmt->execute();
@@ -15,29 +16,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $userData = $result->fetch_assoc();
 
     if ($userData && password_verify($password, $userData['password'])) {
-        // Authentication successful
+        session_regenerate_id(true);
         $_SESSION['username'] = $userData['username'];
         $_SESSION['name'] = $userData['name'];
         $_SESSION['role'] = $userData['role'];
-=======
-    $username = $_POST['username'];
-    $password = $_POST['password'];
-
-    // Sanitize inputs to prevent SQL injection
-    $username = mysqli_real_escape_string($conn, $username);
-    $password = mysqli_real_escape_string($conn, $password);
-
-    // Query to verify username, password, and fetch role
-    $query = "SELECT * FROM users WHERE username='$username' AND password='$password'";
-    $result = mysqli_query($conn, $query);
-
-    if (mysqli_num_rows($result) == 1) {
-        // Authentication successful
-        $userData = mysqli_fetch_assoc($result);
-        $_SESSION['username'] = $userData['username'];
-        $_SESSION['name'] = $userData['name'];
-        $_SESSION['role'] = $userData['role']; // Fetching user role
->>>>>>> 228a4315a4c55a5067cfe2fd21f8317fe8124e6d
 
         // Redirect based on role
         switch ($userData['role']) {
@@ -91,6 +73,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
         ?>
         <form method="POST" action="">
+            <?php echo csrf_field(); ?>
             <div class="input-group">
                 <label for="username">Username</label>
                 <input type="text" id="username" name="username" required>

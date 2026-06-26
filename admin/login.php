@@ -1,13 +1,14 @@
 <?php
 session_start();
 include('db.php');
+require_once('../csrf.php');
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-<<<<<<< HEAD
+    csrf_verify();
+
     $username = trim($_POST['username']);
     $password = $_POST['password'];
 
-    // Fetch user by username then verify password hash
     $stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
     $stmt->bind_param("s", $username);
     $stmt->execute();
@@ -15,27 +16,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $userData = $result->fetch_assoc();
 
     if ($userData && password_verify($password, $userData['password'])) {
+        session_regenerate_id(true);
         $_SESSION['username'] = $userData['username'];
         $_SESSION['name'] = $userData['name'];
         header("Location: ./dashboard.php");
         exit();
-=======
-    $username = mysqli_real_escape_string($conn, $_POST['username']);
-    $password = mysqli_real_escape_string($conn, $_POST['password']);
-
-    // Query to verify username and password
-    $query = "SELECT * FROM users WHERE username='$username' AND password='$password'";
-    $result = mysqli_query($conn, $query);
-
-    if (mysqli_num_rows($result) == 1) {
-        $userData = mysqli_fetch_assoc($result);
-        $_SESSION['username'] = $userData['username'];
-        $_SESSION['name'] = $userData['name'];
-        header("Location: ./dashboard.php");
-        exit(); // ✅ exit after redirect
->>>>>>> 228a4315a4c55a5067cfe2fd21f8317fe8124e6d
     } else {
-        // Redirect with error
         header("Location: login.php?error=Invalid+username+or+password");
         exit();
     }
@@ -170,6 +156,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
         ?>
         <form method="POST" action="">
+            <?php echo csrf_field(); ?>
             <div class="input-group">
                 <label for="username">Username</label>
                 <input type="text" id="username" name="username" required>

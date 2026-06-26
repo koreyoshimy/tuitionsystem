@@ -1,6 +1,7 @@
 <?php
 session_start();
 include("db.php");
+require_once '../csrf.php';
 
 // Check if the user is logged in
 if (!isset($_SESSION['username'])) {
@@ -13,6 +14,7 @@ $username = $_SESSION['username'];
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify();
     $old_password = $_POST['password'];
     $new_password1 = $_POST['password1'];
     $new_password2 = $_POST['password2'];
@@ -44,16 +46,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stored_password = $user['password'];
 
         // Verify the old password
-<<<<<<< HEAD
         if (!password_verify($old_password, $stored_password)) {
             echo "<script>alert('Old password is incorrect.');</script>";
         } else {
             $new_hashed = password_hash($new_password1, PASSWORD_DEFAULT);
-=======
-        if ($old_password !== $stored_password) {
-            echo "<script>alert('Old password is incorrect.');</script>";
-        } else {
->>>>>>> 228a4315a4c55a5067cfe2fd21f8317fe8124e6d
+
             // Update the password in the database
             $update_query = "UPDATE users SET password = ? WHERE username = ?";
             $stmt = $conn->prepare($update_query);
@@ -62,11 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 die("Failed to prepare the update statement: " . $conn->error);
             }
 
-<<<<<<< HEAD
             $stmt->bind_param("ss", $new_hashed, $username);
-=======
-            $stmt->bind_param("ss", $new_password1, $username);
->>>>>>> 228a4315a4c55a5067cfe2fd21f8317fe8124e6d
 
             if ($stmt->execute()) {
                 echo "<script>

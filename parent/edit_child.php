@@ -12,16 +12,17 @@ if (!isset($_GET['id'])) {
 }
 
 $childId = intval($_GET['id']);
+$parentUsername = $_SESSION['username'];
 
-// Fetch child data
-$query = "SELECT * FROM children WHERE id = ?";
+// Fetch child data — verify it belongs to this parent
+$query = "SELECT * FROM children WHERE id = ? AND parent_username = ?";
 $stmt = $conn->prepare($query);
-$stmt->bind_param("i", $childId);
+$stmt->bind_param("is", $childId, $parentUsername);
 $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows === 0) {
-    die("Child not found.");
+    die("Child not found or access denied.");
 }
 
 $child = $result->fetch_assoc();
@@ -31,12 +32,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name']);
     $birth_date = $_POST['birth_date'];
     $gender = $_POST['gender'];
-  
     $school = trim($_POST['school']);
 
-    $updateQuery = "UPDATE children SET name = ?, birth_date = ?, gender = ?,  school = ? WHERE id = ?";
+    $updateQuery = "UPDATE children SET name = ?, birth_date = ?, gender = ?, school = ? WHERE id = ? AND parent_username = ?";
     $updateStmt = $conn->prepare($updateQuery);
-    $updateStmt->bind_param("ssssi", $name, $birth_date, $gender, $school, $childId);
+    $updateStmt->bind_param("ssssis", $name, $birth_date, $gender, $school, $childId, $parentUsername);
 
     if ($updateStmt->execute()) {
         header("Location: dashboard.php?updated=1");

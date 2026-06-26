@@ -1,6 +1,7 @@
 <?php
 session_start();
-include 'db.php'; // Include your database connection file
+include 'db.php';
+require_once '../csrf.php';
 
 // Check if the user is logged in
 if (!isset($_SESSION['username'])) {
@@ -222,8 +223,8 @@ form button:hover {
     <h1>ACE Tuition Management System</h1>
     <div class="d-flex align-items-center gap-3 text-white">
         <div class="text-end">
-            <div><?php echo htmlspecialchars($parent['username']); ?></div>
-            <div style="font-size: 12px;"><?php echo htmlspecialchars($parent['role']); ?></div>
+            <div><?php echo htmlspecialchars($user['username']); ?></div>
+            <div style="font-size: 12px;"><?php echo htmlspecialchars($user['role']); ?></div>
         </div>
         <a href="logout.php" class="text-white" title="Logout">
             <i class="fas fa-sign-out-alt fa-lg"></i>
@@ -251,6 +252,7 @@ form button:hover {
         
             <h1>Change Password</h1>
             <form action="process_password.php" method="POST">
+                <?php echo csrf_field(); ?>
                 <!-- Old Password -->
                 <label for="password">Old Password</label>
                 <input type="password" id="password" name="password" required>

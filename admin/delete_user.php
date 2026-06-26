@@ -13,14 +13,17 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
 // Check if user exists
-$stmt = $pdo->prepare("SELECT id FROM users WHERE id = ?");
-$stmt->execute([$id]);
-$user = $stmt->fetch();
+$stmt = $conn->prepare("SELECT id FROM users WHERE id = ?");
+$stmt->bind_param("i", $id);
+$stmt->execute();
+$stmt->store_result();
+$user = $stmt->num_rows > 0;
 
 if ($user) {
-    // Delete user
-    $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
-    $stmt->execute([$id]);
+    $stmt->close();
+    $stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
     
     $_SESSION['message'] = "User deleted successfully";
 } else {
